@@ -17,10 +17,14 @@ async function main() {
   app.get("/validate-username", async (req, res) => {
     const { username } = req.query;
 
+    if (!username || typeof username !== "string") return res.sendStatus(422);
+
+    if (username.length < 3) return res.status(400).json({ valid: false });
+
     const {
       rows: [existingUser],
     } = await db.query('select * from "User" where username = $1', [
-      username?.toString().trim(),
+      username.trim(),
     ]);
 
     if (existingUser) res.status(400).json({ valid: false });
