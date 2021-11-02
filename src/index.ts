@@ -9,9 +9,15 @@ import authenticate from "./middlewares/authenticate";
 import parseUser from "./middlewares/parseUser";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
+import { IUserWithPassword } from "./interfaces/IUser";
 
 function hashPassword(plainPassowrd: string) {
   return bcrypt.hashSync(plainPassowrd, 10);
+}
+
+function isPasswordValid(plain: string, hash: string) {
+  console.log("isPasswordValid()");
+  return bcrypt.compareSync(plain, hash);
 }
 
 async function isUsernameValid(username: any) {
@@ -69,6 +75,32 @@ async function main() {
         jwt.sign(user.username, process.env.JWT_SECRET as string)
       )
       .json(user);
+  });
+
+  app.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+
+    const {
+      rows: [user],
+    } = await db.query<IUserWithPassword>(
+      `select * from "User" where username = $1`,
+      [username]
+    );
+
+    if (!user || !isPasswordValid(password, user.password))
+      return res.status(400).json({ message: "Invalid username or password" });
+
+    // Validation complete, grant access
+    return res
+      .cookie(
+        "token",
+        jwt.sign(user.username, process.env.JWT_SECRET as string)
+      )
+      .json({
+        id: user.id,
+        username: user.username,
+        createdAt: user.createdAt,
+      });
   });
 
   app.get("/current-user", authenticate, (req, res) => {

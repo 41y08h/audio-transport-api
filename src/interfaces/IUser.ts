@@ -3,3 +3,7 @@ export default interface IUser {
   username: string;
   createdAt: Date;
 }
+
+export interface IUserWithPassword extends IUser {
+  password: string;
+}
