@@ -5,6 +5,14 @@ import express from "express";
 import { createServer } from "http";
 import db from "./db";
 import jwt from "jsonwebtoken";
+import authenticate from "./middlewares/authenticate";
+import parseUser from "./middlewares/parseUser";
+import cookieParser from "cookie-parser";
+import bcrypt from "bcrypt";
+
+function hashPassword(plainPassowrd: string) {
+  return bcrypt.hashSync(plainPassowrd, 10);
+}
 
 async function isUsernameValid(username: any) {
   if (!username || typeof username !== "string" || username.length < 3)
@@ -26,7 +34,9 @@ async function main() {
   const app = express();
   const server = createServer(app);
 
+  app.use(cookieParser());
   app.use(express.json());
+  app.use(parseUser);
 
   app.get("/validate-username", async (req, res) => {
     const { username } = req.query;
@@ -36,17 +46,21 @@ async function main() {
   });
 
   app.post("/register", async (req, res) => {
-    const { username } = req.body;
+    const { username, password } = req.body;
 
     const isValid = await isUsernameValid(username);
     if (!isValid) return res.status(400).json({ message: "Invalid username" });
 
+    // Encrypt password
+    bcrypt;
+
     // Register user
     const {
       rows: [user],
-    } = await db.query(`insert into "User"(username) values ($1) returning *`, [
-      username,
-    ]);
+    } = await db.query(
+      `insert into "User"(username, password) values ($1, $2) returning id, username, "createdAt"`,
+      [username, hashPassword(password)]
+    );
 
     return res
       .status(201)
@@ -55,6 +69,10 @@ async function main() {
         jwt.sign(user.username, process.env.JWT_SECRET as string)
       )
       .json(user);
+  });
+
+  app.get("/current-user", authenticate, (req, res) => {
+    res.json(req.currentUser);
   });
 
   const io: Server = new Server(server);
