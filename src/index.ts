@@ -16,7 +16,6 @@ function hashPassword(plainPassowrd: string) {
 }
 
 function isPasswordValid(plain: string, hash: string) {
-  console.log("isPasswordValid()");
   return bcrypt.compareSync(plain, hash);
 }
 
