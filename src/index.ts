@@ -1,36 +1,14 @@
 import "dotenv/config";
+import "reflect-metadata";
 import createDebug from "debug";
 import { Server } from "socket.io";
 import express from "express";
 import { createServer } from "http";
-import db from "./db";
-import jwt from "jsonwebtoken";
-import authenticate from "./middlewares/authenticate";
 import parseUser from "./middlewares/parseUser";
 import cookieParser from "cookie-parser";
-import bcrypt from "bcrypt";
-import { IUserWithPassword } from "./interfaces/IUser";
-
-function hashPassword(plainPassowrd: string) {
-  return bcrypt.hashSync(plainPassowrd, 10);
-}
-
-function isPasswordValid(plain: string, hash: string) {
-  return bcrypt.compareSync(plain, hash);
-}
-
-async function isUsernameValid(username: any) {
-  if (!username || typeof username !== "string" || username.length < 3)
-    return false;
-
-  const {
-    rows: [existingUser],
-  } = await db.query('select * from "User" where username = $1', [
-    username.trim(),
-  ]);
-
-  return !existingUser;
-}
+import { createConnection } from "typeorm";
+import routes from "./routes";
+import { context, ctxErrors } from "./utils/HandlerContext";
 
 async function main() {
   const debug = createDebug("app");
@@ -39,72 +17,14 @@ async function main() {
   const app = express();
   const server = createServer(app);
 
+  createConnection();
+
   app.use(cookieParser());
   app.use(express.json());
+  app.use(context);
   app.use(parseUser);
-
-  app.get("/validate-username", async (req, res) => {
-    const { username } = req.query;
-
-    if (await isUsernameValid(username)) res.json({ valid: true });
-    else res.status(400).json({ valid: false });
-  });
-
-  app.post("/register", async (req, res) => {
-    const { username, password } = req.body;
-
-    const isValid = await isUsernameValid(username);
-    if (!isValid) return res.status(400).json({ message: "Invalid username" });
-
-    // Encrypt password
-    bcrypt;
-
-    // Register user
-    const {
-      rows: [user],
-    } = await db.query(
-      `insert into "User"(username, password) values ($1, $2) returning id, username, "createdAt"`,
-      [username, hashPassword(password)]
-    );
-
-    return res
-      .status(201)
-      .cookie(
-        "token",
-        jwt.sign(user.username, process.env.JWT_SECRET as string)
-      )
-      .json(user);
-  });
-
-  app.post("/login", async (req, res) => {
-    const { username, password } = req.body;
-
-    const {
-      rows: [user],
-    } = await db.query<IUserWithPassword>(
-      `select * from "User" where username = $1`,
-      [username]
-    );
-
-    if (!user || !isPasswordValid(password, user.password))
-      return res.status(400).json({ message: "Invalid username or password" });
-
-    // Validation complete, grant access
-    return res
-      .cookie(
-        "token",
-        jwt.sign(user.username, process.env.JWT_SECRET as string)
-      )
-      .json({
-        id: user.id,
-        username: user.username,
-        createdAt: user.createdAt,
-      });
-  });
-
-  app.get("/current-user", authenticate, (req, res) => {
-    res.json(req.currentUser);
-  });
+  app.use(routes);
+  app.use(ctxErrors);
 
   const io: Server = new Server(server);
 
