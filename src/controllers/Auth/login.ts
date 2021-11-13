@@ -18,7 +18,8 @@ const login: RequestHandler = async (req, res) => {
     return req.ctx.error("Invalid username or password", 422);
 
   // Validation complete, grant access
-  return res.cookie("token", signToken(user.username)).json({
+  // Send a session only token
+  res.cookie("token", signToken(user.username)).json({
     id: user.id,
     username: user.username,
     createdAt: user.createdAt,
