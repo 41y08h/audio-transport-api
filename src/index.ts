@@ -29,7 +29,7 @@ async function main() {
   const io: Server = new Server(server);
 
   app.listen(PORT, () => {
-    debug(`Service started on PORT ${PORT}`);
+    debug(`started on PORT ${PORT}`);
   });
 }
 
