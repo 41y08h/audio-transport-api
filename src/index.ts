@@ -17,7 +17,7 @@ async function main() {
   const app = express();
   const server = createServer(app);
 
-  createConnection();
+  await createConnection();
 
   app.use(cookieParser());
   app.use(express.json());
