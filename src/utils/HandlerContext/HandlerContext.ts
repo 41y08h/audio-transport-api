@@ -18,11 +18,7 @@ function HandlerContext(req: Request, res: Response, next: NextFunction) {
     throw new HandlerContextError(message, code);
   }
 
-  function executeMiddleware(...middlewares: RequestHandler[]) {
-    middlewares.forEach((middleware) => middleware(req, res, next));
-  }
-
-  return { getBody, getQuery, error, executeMiddleware };
+  return { getBody, getQuery, error };
 }
 
 export default HandlerContext;

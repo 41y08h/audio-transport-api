@@ -12,7 +12,10 @@ interface BodyInput {
 const login: RequestHandler = async (req, res) => {
   const { username, password } = req.ctx.getBody<BodyInput>(AuthSchema);
 
-  const user = await User.findOne({ username });
+  const user = await User.findOne(
+    { username },
+    { select: ["id", "username", "password", "createdAt"] }
+  );
 
   if (!user || !isPasswordValid(password, user.password))
     return req.ctx.error("Invalid username or password", 422);
