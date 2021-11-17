@@ -5,15 +5,6 @@ BaseModel.knex(knex);
 
 export default class Handshake extends BaseModel {
   static tableName = "handshakes";
-  static jsonSchema = {
-    type: "object",
-    required: ["fromUserId", "toUserId"],
-    properties: {
-      fromUserId: { type: "integer" },
-      toUserId: { type: "integer" },
-      createdAt: { type: "string" },
-    },
-  };
   fromUserId: number;
   toUserId: number;
   createdAt: Date;
