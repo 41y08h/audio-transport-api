@@ -8,5 +8,5 @@ export default class User extends BaseModel {
   id: number;
   username: string;
   password: string;
-  createdAt: string;
+  createdAt: Date;
 }

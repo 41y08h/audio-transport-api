@@ -18,9 +18,7 @@ const parseUser: RequestHandler = async (req, res, next) => {
       token,
       process.env.JWT_SECRET as string
     ) as string;
-    const [user] = await User.query().select().where("username", username);
-
-    req.user = user;
+    req.user = await User.query().findOne({ username });
   }
   next();
 };
