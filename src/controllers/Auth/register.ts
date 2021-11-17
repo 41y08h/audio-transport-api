@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import User from "../../entity/User";
+import User from "../../db/models/User";
 import AuthSchema from "./utils/AuthSchema";
 import hashPassword from "./utils/hashPassword";
 import isUsernameAvailable from "./utils/isUsernameAvailable";
@@ -16,11 +16,7 @@ const register: RequestHandler = async (req, res) => {
   const isAvailable = await isUsernameAvailable(username);
   if (!isAvailable) return req.ctx.error("Username not available", 422);
 
-  const user = new User();
-  user.username = username;
-  user.password = hashPassword(password);
-  await user.save();
-
+  const user = await User.query().insert({ username, password }).returning("*");
   const token = signToken(user.username);
 
   return res

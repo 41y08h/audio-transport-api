@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-import User from "../entity/User";
+import User from "../db/models/User";
 
 declare global {
   namespace Express {
@@ -14,8 +14,13 @@ const parseUser: RequestHandler = async (req, res, next) => {
   const { token } = req.cookies;
 
   if (token) {
-    const username = jwt.verify(token, process.env.JWT_SECRET as string);
-    req.user = await User.findOne({ where: { username } });
+    const username = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as string;
+    const [user] = await User.query().select().where("username", username);
+
+    req.user = user;
   }
   next();
 };

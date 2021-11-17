@@ -6,7 +6,12 @@
   "scripts": {
     "start": "node build/index.js",
     "build": "tsc",
-    "dev": "nodemon src/index.ts --transpile-only"
+    "dev": "nodemon src/index.ts",
+    "migrate": "env-cmd knex migrate:make -x ts",
+    "migrate:apply": "env-cmd knex migrate:latest",
+    "migrate:rollback": "env-cmd knex migrate:rollback",
+    "seed": "env-cmd knex seed:make -x ts",
+    "seed:run": "env-cmd knex seed:run"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
@@ -27,10 +32,13 @@
     "cookie-parser": "^1.4.5",
     "debug": "^4.3.2",
     "dotenv": "^10.0.0",
+    "env-cmd": "^10.1.0",
     "express": "^4.17.1",
     "express-async-handler": "^1.2.0",
     "joi": "^17.4.2",
     "jsonwebtoken": "^8.5.1",
+    "knex": "^0.95.14",
+    "objection": "^3.0.0",
     "pg": "^8.7.1",
     "reflect-metadata": "^0.1.13",
     "socket.io": "^4.3.1",

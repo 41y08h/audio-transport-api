@@ -1,12 +1,10 @@
 import "dotenv/config";
-import "reflect-metadata";
 import createDebug from "debug";
 import { Server } from "socket.io";
 import express from "express";
 import { createServer } from "http";
 import parseUser from "./middlewares/parseUser";
 import cookieParser from "cookie-parser";
-import { createConnection } from "typeorm";
 import routes from "./routes";
 import { context, ctxErrors } from "./utils/HandlerContext";
 
@@ -16,8 +14,6 @@ async function main() {
 
   const app = express();
   const server = createServer(app);
-
-  await createConnection();
 
   app.use(cookieParser());
   app.use(express.json());
