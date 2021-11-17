@@ -1,9 +1,9 @@
-import { Model } from "objection";
 import knex from "../knex";
+import BaseModel from "./BaseModel";
 
-Model.knex(knex);
+BaseModel.knex(knex);
 
-export default class Handshake extends Model {
+export default class Handshake extends BaseModel {
   static tableName = "handshakes";
   static jsonSchema = {
     type: "object",
@@ -21,16 +21,16 @@ export default class Handshake extends Model {
   static get relationMappings() {
     return {
       fromUser: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: __dirname + "/User",
+        relation: BaseModel.BelongsToOneRelation,
+        modelClass: "User",
         join: {
           from: "handshakes.fromUserId",
           to: "users.id",
         },
       },
       toUser: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: __dirname + "/User",
+        relation: BaseModel.BelongsToOneRelation,
+        modelClass: "User",
         join: {
           from: "handshakes.toUserId",
           to: "users.id",

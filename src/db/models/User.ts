@@ -1,9 +1,9 @@
-import { Model } from "objection";
 import knex from "../knex";
+import BaseModel from "./BaseModel";
 
-Model.knex(knex);
+BaseModel.knex(knex);
 
-export default class User extends Model {
+export default class User extends BaseModel {
   static tableName = "users";
   static jsonSchema = {
     type: "object",
