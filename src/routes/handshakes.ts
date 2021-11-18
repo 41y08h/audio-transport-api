@@ -4,6 +4,10 @@ import authenticate from "../middlewares/authenticate";
 
 const router = Router();
 
-router.post("/offer", authenticate, HandshakesController.offer);
+router
+  .use(authenticate)
+  .route("/offers")
+  .get(HandshakesController.getAllOffers)
+  .post(HandshakesController.offer);
 
 export default router;

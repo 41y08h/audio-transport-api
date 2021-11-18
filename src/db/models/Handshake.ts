@@ -1,5 +1,6 @@
 import knex from "../knex";
 import BaseModel from "./BaseModel";
+import User from "./User";
 
 BaseModel.knex(knex);
 
@@ -8,6 +9,8 @@ export default class Handshake extends BaseModel {
   fromUserId: number;
   toUserId: number;
   createdAt: Date;
+  fromUser: User;
+  toUser: User;
 
   static relationMappings = {
     fromUser: {

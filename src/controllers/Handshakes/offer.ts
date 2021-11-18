@@ -15,6 +15,9 @@ const offer: RequestHandler = async (req, res) => {
     username: Joi.string().required(),
   });
 
+  if (username === req.user.username)
+    return req.ctx.error("You can't offer yourself", 400);
+
   const offerToUser = await User.query().findOne({ username });
 
   if (!offerToUser) {
@@ -28,13 +31,8 @@ const offer: RequestHandler = async (req, res) => {
         toUserId: offerToUser.id,
       })
       .returning("*")
-      .withGraphFetched("fromUser(selectFields)")
-      .withGraphFetched("toUser(selectFields)")
-      .modifiers({
-        selectFields(builder) {
-          builder.select("id", "username");
-        },
-      });
+      .withGraphFetched("fromUser(defaultSelects)")
+      .withGraphFetched("toUser(defaultSelects)");
 
     res.status(201).json(handshake);
   } catch (e) {
