@@ -20,6 +20,15 @@ GET {{api}}/handshakes/offers
 
 ###
 
+POST {{api}}/handshakes/offers
+Content-Type: application/json
+
+{
+    "username": "warren"
+}
+
+###
+
 POST {{api}}/handshakes/answer
 Content-Type: application/json
 
