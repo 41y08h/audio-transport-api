@@ -1,13 +1,14 @@
-import { Router } from "express";
+import PromiseRouter from "express-promise-router";
 import HandshakesController from "../controllers/Handshakes";
 import authenticate from "../middlewares/authenticate";
 
-const router = Router();
+const router = PromiseRouter().use(authenticate);
 
 router
-  .use(authenticate)
   .route("/offers")
   .get(HandshakesController.getAllOffers)
   .post(HandshakesController.offer);
+
+router.post("/answer", HandshakesController.answer);
 
 export default router;

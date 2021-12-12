@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "../db/models/User";
 
 declare global {
@@ -14,11 +14,18 @@ const parseUser: RequestHandler = async (req, res, next) => {
   const { token } = req.cookies;
 
   if (token) {
-    const username = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as string;
-    req.user = await User.query().findOne({ username });
+    try {
+      const { username } = jwt.verify(
+        token,
+        process.env.JWT_SECRET as string
+      ) as { username?: string };
+
+      req.user = username
+        ? await User.query().findOne({ username })
+        : undefined;
+    } catch (error) {
+      return next();
+    }
   }
   next();
 };

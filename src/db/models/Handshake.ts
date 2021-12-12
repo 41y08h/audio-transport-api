@@ -6,11 +6,13 @@ BaseModel.knex(knex);
 
 export default class Handshake extends BaseModel {
   static tableName = "handshakes";
+  static idColumn = ["fromUserId", "toUserId"];
+
   fromUserId: number;
-  toUserId: number;
-  createdAt: Date;
   fromUser: User;
+  toUserId: number;
   toUser: User;
+  createdAt: Date;
 
   static relationMappings = {
     fromUser: {

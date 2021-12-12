@@ -1,0 +1,32 @@
+@api = http://localhost:5000
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE2MzcyNTE2NTMsImV4cCI6MTYzNzI1MTY3M30.fwPmzvTz0tjnqb6-xdX-XZqUt5r79whIfUjemAQ3iAE
+
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+    "username": "test",
+    "password": "testpassword"
+}
+
+###
+
+GET {{api}}/auth/current-user
+Cookie: token={{token}}
+
+###
+
+GET {{api}}/handshakes/offers
+
+###
+
+POST {{api}}/handshakes/answer
+Content-Type: application/json
+
+{
+    "username": "warren"
+}
+
+
+
+

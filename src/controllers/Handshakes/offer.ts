@@ -19,20 +19,19 @@ const offer: RequestHandler = async (req, res) => {
     return req.ctx.error("You can't offer yourself", 400);
 
   const offerToUser = await User.query().findOne({ username });
-
-  if (!offerToUser) {
-    return req.ctx.error("Username not found", 404);
-  }
+  if (!offerToUser) return req.ctx.error("Username not found", 404);
 
   try {
+    // Check if the user already has already been offered
+    const existingHandshake = await Handshake.query().findOne({
+      toUserId: user.id,
+    });
+    if (existingHandshake)
+      return req.ctx.error("You already have an offer from this user", 409);
+
     const handshake = await Handshake.query()
-      .insert({
-        fromUserId: user.id,
-        toUserId: offerToUser.id,
-      })
-      .returning("*")
-      .withGraphFetched("fromUser(defaultSelects)")
-      .withGraphFetched("toUser(defaultSelects)");
+      .insertAndFetch({ fromUserId: user.id, toUserId: offerToUser.id })
+      .withGraphFetched("[fromUser(defaultSelects), toUser(defaultSelects)]");
 
     res.status(201).json(handshake);
   } catch (e) {

@@ -7,6 +7,7 @@ import parseUser from "./middlewares/parseUser";
 import cookieParser from "cookie-parser";
 import routes from "./routes";
 import { context, ctxErrors } from "./utils/HandlerContext";
+import serverErrors from "./middlewares/serverErrors";
 
 async function main() {
   const debug = createDebug("app");
@@ -21,6 +22,7 @@ async function main() {
   app.use(parseUser);
   app.use(routes);
   app.use(ctxErrors);
+  app.use(serverErrors);
 
   const io: Server = new Server(server);
 
