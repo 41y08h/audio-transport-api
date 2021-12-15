@@ -4,12 +4,23 @@ import HandlerContextError from "./HandlerContextError";
 import validate from "./validate";
 
 function HandlerContext(req: Request, res: Response, next: NextFunction) {
-  function getBody<Body>(schema: Joi.PartialSchemaMap<Body>) {
+  function getBody<Body>(
+    updater:
+      | Joi.PartialSchemaMap<Body>
+      | ((joi: typeof Joi) => Joi.PartialSchemaMap<Body>)
+  ) {
+    const schema = typeof updater === "function" ? updater(Joi) : updater;
+
     const body = validate<typeof schema, Body>(schema, req.body);
     return body;
   }
 
-  function getQuery<Query>(schema: Joi.PartialSchemaMap<Query>) {
+  function getQuery<Query>(
+    updater:
+      | Joi.PartialSchemaMap<Query>
+      | ((joi: typeof Joi) => Joi.PartialSchemaMap<Query>)
+  ) {
+    const schema = typeof updater === "function" ? updater(Joi) : updater;
     const query = validate<typeof schema, Query>(schema, req.query as any);
     return query;
   }
