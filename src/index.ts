@@ -8,6 +8,9 @@ import cookieParser from "cookie-parser";
 import routes from "./routes";
 import { context, ctxErrors } from "./utils/HandlerContext";
 import serverErrors from "./middlewares/serverErrors";
+import cookie from "cookie";
+import deserializeUser from "./utils/auth/deserializeUser";
+import ConnectedClients from "./utils/ConnectedClients";
 
 async function main() {
   const debug = createDebug("app");
@@ -24,9 +27,61 @@ async function main() {
   app.use(ctxErrors);
   app.use(serverErrors);
 
-  const io: Server = new Server(server);
+  const io: Server = new Server(server, {
+    cors: { origin: process.env.CLIENT_HOSTNAME },
+  });
+  const connectedClients = new ConnectedClients();
 
-  app.listen(PORT, () => {
+  io.use(async (socket, next) => {
+    const existingClient = connectedClients.getBySocketId(socket.id);
+    if (existingClient) return next();
+
+    try {
+      const { token } = cookie.parse(socket.handshake.headers.cookie || "");
+      const user = await deserializeUser(token);
+      connectedClients.add(user, socket);
+    } catch {
+      next();
+    }
+
+    next();
+  });
+
+  io.on("connection", (socket) => {
+    const debug = createDebug("app:signaling");
+
+    console.log("a user connected to web sockets server");
+
+    interface ICallInitData {
+      username: string;
+      signal: any;
+    }
+
+    socket.on("callPeer", async ({ username, signal }: ICallInitData) => {
+      const caller = connectedClients.getBySocketId(socket.id);
+      const callee = connectedClients.getByUsername(username);
+
+      if (!caller) return socket.disconnect();
+
+      // Stop from calling self
+      if (caller.user.id === callee.user.id)
+        return socket.emit("error/callPeer", {
+          type: "callingSelf",
+          message: "You can't call yourself",
+        });
+
+      // If no peer
+      if (!callee)
+        return socket.emit("error/callPeer", { type: "Peer not found" });
+
+      // Get signal from callee
+      callee.socket.emit("/peerIsCalling", { username, signal });
+
+      debug(`c${caller.user.username} called c${callee.user.username}`);
+    });
+  });
+
+  server.listen(PORT, () => {
     debug(`started on PORT ${PORT}`);
   });
 }
