@@ -32,9 +32,9 @@ const offer: RequestHandler = async (req, res) => {
 
     // Check if already paired
     const isAlreadyPaired = await Peer.query()
-      .select()
-      .where({ userId: offerToUser.id })
-      .orWhere({ peerId: user.id });
+      .findOne({ userId: offerToUser.id, peerId: user.id })
+      .orWhere({ userId: user.id, peerId: offerToUser.id });
+
     if (isAlreadyPaired)
       return req.ctx.error("You are already paired with this user", 409);
 
