@@ -3,10 +3,10 @@ import answer from "./answer";
 import getAllOffers from "./getAllOffers";
 import offer from "./offer";
 
-const HandshakesController = {
+const HandshakesController = Controller({
   offer,
   getAllOffers,
   answer,
-};
+});
 
 export default HandshakesController;

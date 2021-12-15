@@ -9,7 +9,7 @@ const config: Record<typeof process.env.NODE_ENV, Knex.Config> = {
     },
     migrations: { directory: "./src/db/migrations" },
     seeds: { directory: "./src/db/seeds" },
-    debug: true,
+    debug: false,
   },
   production: {
     client: "pg",
