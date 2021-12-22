@@ -11,6 +11,8 @@ import serverErrors from "./middlewares/serverErrors";
 import cookie from "cookie";
 import deserializeUser from "./utils/auth/deserializeUser";
 import ConnectedClients from "./utils/ConnectedClients";
+import { ICallInitData } from "./interfaces/call";
+import Peer from "./db/models/Peer";
 
 async function main() {
   const debug = createDebug("app");
@@ -52,11 +54,6 @@ async function main() {
 
     console.log("a user connected to web sockets server");
 
-    interface ICallInitData {
-      username: string;
-      signal: any;
-    }
-
     socket.on("callPeer", async ({ username, signal }: ICallInitData) => {
       const caller = connectedClients.getBySocketId(socket.id);
       const callee = connectedClients.getByUsername(username);
@@ -72,12 +69,33 @@ async function main() {
 
       // If no peer
       if (!callee)
-        return socket.emit("error/callPeer", { type: "Peer not found" });
+        return socket.emit("error/callPeer", {
+          type: "peerNotFound",
+          message: "Peer not found",
+        });
+
+      // Check if callee is paired with caller
+      const pair = Peer.query()
+        .findOne({ userId: callee.user.id, peerId: caller.user.id })
+        .orWhere({ userId: caller.user.id, peerId: callee.user.id });
+
+      if (!pair)
+        return socket.emit("error/callPeer", {
+          type: "pairNotFound",
+          message: "You're not paired with this user",
+        });
 
       // Get signal from callee
-      callee.socket.emit("/peerIsCalling", { username, signal });
+      callee.socket.emit("peerIsCalling", {
+        username: caller.user.username,
+        signal,
+      });
 
-      debug(`c${caller.user.username} called c${callee.user.username}`);
+      debug(`${caller.user.username} called ${callee.user.username}`);
+    });
+
+    socket.once("disconnect", () => {
+      connectedClients.remove(socket.id);
     });
   });
 
