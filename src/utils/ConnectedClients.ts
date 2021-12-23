@@ -1,9 +1,16 @@
 import { Socket } from "socket.io";
 import User from "../db/models/User";
 
-export interface Client {
+export class Client {
   user: User;
   socket: Socket;
+  inCallWith: Client | null;
+
+  constructor(user: User, socket: Socket) {
+    this.user = user;
+    this.socket = socket;
+    this.inCallWith = null;
+  }
 }
 
 export default class ConnectedClients {
@@ -14,7 +21,7 @@ export default class ConnectedClients {
   }
 
   add(user: User, socket: Socket) {
-    const client: Client = { user, socket };
+    const client = new Client(user, socket);
     this.clients.push(client);
     return client;
   }
@@ -26,6 +33,11 @@ export default class ConnectedClients {
 
   getByUsername(username: string) {
     return this.clients.find((client) => client.user.username == username);
+  }
+
+  addCall(caller: Client, callee: Client) {
+    caller.inCallWith = callee;
+    callee.inCallWith = caller;
   }
 
   remove(socketId: string) {

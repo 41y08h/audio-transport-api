@@ -59,39 +59,42 @@ async function main() {
       const callee = connectedClients.getByUsername(username);
 
       if (!caller) return socket.disconnect();
+      if (!callee) return socket.emit("error/callPeer", "USER_NOT_ONLINE");
 
-      // Stop from calling self
       if (caller.user.id === callee.user.id)
-        return socket.emit("error/callPeer", {
-          type: "callingSelf",
-          message: "You can't call yourself",
-        });
-
-      // If no peer
-      if (!callee)
-        return socket.emit("error/callPeer", {
-          type: "peerNotFound",
-          message: "Peer not found",
-        });
+        return socket.emit("error/callPeer", "CALLING_SELF");
 
       // Check if callee is paired with caller
       const pair = Peer.query()
         .findOne({ userId: callee.user.id, peerId: caller.user.id })
         .orWhere({ userId: caller.user.id, peerId: callee.user.id });
 
-      if (!pair)
-        return socket.emit("error/callPeer", {
-          type: "pairNotFound",
-          message: "You're not paired with this user",
-        });
+      if (!pair) return socket.emit("error/callPeer", "PAIR_NOT_FOUND");
 
       // Get signal from callee
       callee.socket.emit("peerIsCalling", {
         username: caller.user.username,
         signal,
       });
+      connectedClients.addCall(caller, callee);
 
       debug(`${caller.user.username} called ${callee.user.username}`);
+    });
+
+    socket.on("calleeSignal", (signal) => {
+      const callee = connectedClients.getBySocketId(socket.id);
+      const caller = callee.inCallWith;
+
+      if (!callee) return socket.disconnect();
+      console.log("verified call callee", callee.socket.id);
+      console.log("verified call caller", callee.inCallWith.socket.id);
+
+      // Verify caller and callee
+      if (callee.user.username !== caller.inCallWith.user.username)
+        return socket.emit("error/calleeSignal", "CALL_NOT_FOUND");
+
+      // Send signal to caller
+      callee.inCallWith.socket.emit("peerSignal", signal);
     });
 
     socket.once("disconnect", () => {
