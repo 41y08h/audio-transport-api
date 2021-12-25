@@ -10,10 +10,10 @@ export async function seed(knex: Knex): Promise<void> {
   await User.query().insert(
     [
       { username: "test", password: "testpassword" },
-      { username: "piyush", password: "starship%tree%coalesce" },
-      { username: "elon", password: "starlink%tree%coalesce" },
-      { username: "ben", password: "stocks%tree%coalesce" },
-      { username: "warren", password: "cococola%tree%coalesce" },
+      { username: "piyush", password: "piyushpassword" },
+      { username: "elon", password: "elonpassword" },
+      { username: "ben", password: "benpassword" },
+      { username: "warren", password: "warrenpassword" },
     ].map((user) => ({ ...user, password: hashPassword(user.password) }))
   );
 }
