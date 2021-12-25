@@ -16,7 +16,9 @@ const register: RequestHandler = async (req, res) => {
   const isAvailable = await isUsernameAvailable(username);
   if (!isAvailable) return req.ctx.error("Username not available", 422);
 
-  const user = await User.query().insert({ username, password }).returning("*");
+  const user = await User.query()
+    .insert({ username, password: hashPassword(password) })
+    .returning("*");
   const token = signToken(user.username);
 
   return res
