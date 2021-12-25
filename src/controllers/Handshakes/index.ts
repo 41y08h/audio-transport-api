@@ -1,11 +1,13 @@
 import Controller from "../../utils/Controller";
 import answer from "./answer";
-import getAllOffers from "./getAllOffers";
+import getReceived from "./getReceived";
+import getSent from "./getSent";
 import offer from "./offer";
 
 const HandshakesController = Controller({
   offer,
-  getAllOffers,
+  getReceived,
+  getSent,
   answer,
 });
 
